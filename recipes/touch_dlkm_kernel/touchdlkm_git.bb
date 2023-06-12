@@ -34,20 +34,32 @@ do_configure() {
 do_compile() {
     cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform && \
 
-    BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
-    OUT_DIR=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/out/*_tuivm-${KERNEL_VARIANT}defconfig/ \
-    KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
-    INSTALL_MODULE_HEADERS=1 \
-    ./build/build_module.sh
+    if ${@bb.utils.contains('BASEMACHINE', 'trustedvm-v2', 'true', 'false', d)}; then
+        BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
+        EXT_MODULES=../../vendor/qcom/opensource/touch-drivers \
+        ROOTDIR=${WORKSPACE}/ \
+        MODULE_MSM_TOUCH=m \
+        MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/touch-drivers \
+        KERNEL_KIT=${KERNEL_OUT_PATH}/ \
+        OUT_DIR=temp_out_dir \
+        KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
+        ./build/build_module.sh
+    else
+        BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
+        OUT_DIR=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/out/*_tuivm-${KERNEL_VARIANT}defconfig/ \
+        KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
+        INSTALL_MODULE_HEADERS=1 \
+        ./build/build_module.sh
 
-    BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
-    EXT_MODULES=../../vendor/qcom/opensource/touch-drivers \
-    ROOTDIR=${WORKSPACE}/ \
-    MODULE_MSM_TOUCH=m \
-    MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/touch-drivers \
-    OUT_DIR=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/out/*_tuivm-${KERNEL_VARIANT}defconfig/ \
-    KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
-    ./build/build_module.sh
+        BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
+        EXT_MODULES=../../vendor/qcom/opensource/touch-drivers \
+        ROOTDIR=${WORKSPACE}/ \
+        MODULE_MSM_TOUCH=m \
+        MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/touch-drivers \
+        OUT_DIR=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/out/*_tuivm-${KERNEL_VARIANT}defconfig/ \
+        KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
+        ./build/build_module.sh
+    fi
 }
 
 do_install() {
@@ -61,8 +73,8 @@ do_install() {
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
         LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
-        ${STAGING_KERNEL_BUILDDIR}/scripts/sign-file sha1 ${STAGING_KERNEL_BUILDDIR}/certs/signing_key.pem \
-             ${STAGING_KERNEL_BUILDDIR}/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
+        ${KERNEL_PREBUILT_PATH}/../msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.pem \
+             ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
 	install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
