@@ -34,7 +34,7 @@ do_configure() {
 do_compile() {
     cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform && \
 
-    if ${@bb.utils.contains('BASEMACHINE', 'trustedvm-v2', 'true', '', d)}; then
+    if ${@bb.utils.contains('BASEMACHINE', 'trustedvm-v2', 'true', 'false', d)}; then
         BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
         EXT_MODULES=../../vendor/qcom/opensource/touch-drivers \
         ROOTDIR=${WORKSPACE}/ \
