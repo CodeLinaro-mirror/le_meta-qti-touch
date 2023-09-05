@@ -68,7 +68,6 @@ case "$1" in
 	echo -n "Starting/Loading touch module: "
 
 	insmod $MODULE_BASE/goodix_ts.ko
-	insmod $MODULE_BASE/atmel_mxt_ts.ko
 
 	echo "done loading touch_kernel module"
 
