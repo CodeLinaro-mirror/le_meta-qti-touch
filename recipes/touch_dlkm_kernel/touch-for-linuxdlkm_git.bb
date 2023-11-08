@@ -16,6 +16,7 @@ SRC_URI     =  "file://vendor/qcom/opensource/touch-drivers/"
 SRC_URI    +=  "file://start_touch_le"
 SRC_URI    +=  "file://touch.service"
 SRC_URI    +=  "file://touch_load.conf"
+KERNEL_VERSION = "${@get_kernelversion_file("${STAGING_KERNEL_BUILDDIR}")}"
 
 S = "${WORKDIR}/vendor/qcom/opensource/touch-drivers"
 
@@ -56,9 +57,9 @@ do_install() {
 	install -d ${D}${sysconfdir}/initscripts
 	install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
 	install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
-	install -d ${D}/usr/lib/modules/
-	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
-	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/atmel_mxt_ts.ko -D ${D}${libdir}/modules/atmel_mxt_ts.ko
+	install -d ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
+	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
+	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/atmel_mxt_ts.ko -D ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
 	install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 	install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
 	ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
@@ -68,4 +69,4 @@ FILES:${PN} += "${sysconfdir}/*"
 FILES:${PN} += "/etc/initscripts/start_touch_le"
 FILES:${PN} += "${systemd_unitdir}/system/touch.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
-FILES:${PN} += "${libdir}/modules/*"
+FILES:${PN} += "${nonarch_base_libdir}/modules/${KERNEL_VERSION}/*"
