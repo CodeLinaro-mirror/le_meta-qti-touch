@@ -36,13 +36,13 @@ do_configure() {
 do_compile() {
     cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform  \
 
-    BUILD_CONFIG=msm-kernel/build.config.msm.kalama.tuivm \
+    BUILD_CONFIG=msm-kernel/build.config.msm.sun.tuivm \
 	KERNEL_KIT=${KERNEL_PREBUILT_PATH} \
     OUT_DIR=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/out/*_tuivm-${KERNEL_VARIANT}defconfig/ \
     KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
     ./build/build_module.sh
 
-    BUILD_CONFIG=msm-kernel/build.config.msm.kalama.tuivm \
+    BUILD_CONFIG=msm-kernel/build.config.msm.sun.tuivm \
     EXT_MODULES=../../vendor/qcom/opensource/touch-drivers \
     ROOTDIR=${WORKSPACE}/ \
     MODULE_MSM_TOUCH=m \
@@ -59,6 +59,8 @@ do_install() {
 	install -d ${D}/usr/lib/modules/
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/atmel_mxt_ts.ko -D ${D}${libdir}/modules/atmel_mxt_ts.ko
+	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${libdir}/modules/qts.ko
+	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko -D ${D}${libdir}/modules/st_fts.ko
 	install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 	install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
 	ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
