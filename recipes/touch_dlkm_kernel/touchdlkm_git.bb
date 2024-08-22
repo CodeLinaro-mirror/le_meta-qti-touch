@@ -36,32 +36,15 @@ do_configure() {
 do_compile() {
     cd ${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform && \
 
-    if ${@bb.utils.contains('BASEMACHINE', 'trustedvm-v2', 'true', 'false', d)}; then
-        BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
-        EXT_MODULES=../../vendor/qcom/opensource/touch-drivers \
-        ROOTDIR=${WORKSPACE}/ \
-        MODULE_MSM_TOUCH=m \
-        MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/touch-drivers \
-        KERNEL_KIT=${KERNEL_OUT_PATH}/ \
-        OUT_DIR=temp_out_dir \
-        KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
-        ./build/build_module.sh
-    else
-        BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
-        OUT_DIR=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/out/*_tuivm-${KERNEL_VARIANT}defconfig/ \
-        KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
-        INSTALL_MODULE_HEADERS=1 \
-        ./build/build_module.sh
-
-        BUILD_CONFIG=msm-kernel/build.config.msm.${VM_TARGET}.tuivm \
-        EXT_MODULES=../../vendor/qcom/opensource/touch-drivers \
-        ROOTDIR=${WORKSPACE}/ \
-        MODULE_MSM_TOUCH=m \
-        MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/touch-drivers \
-        OUT_DIR=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/out/*_tuivm-${KERNEL_VARIANT}defconfig/ \
-        KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
-        ./build/build_module.sh
-    fi
+    BUILD_CONFIG=${KERNEL_BUILD_CONFIG} \
+    EXT_MODULES=../../vendor/qcom/opensource/touch-drivers \
+    ROOTDIR=${WORKSPACE}/ \
+    MODULE_MSM_TOUCH=m \
+    MODULE_OUT=${WORKDIR}/vendor/qcom/opensource/touch-drivers \
+    KERNEL_KIT=${KERNEL_OUT_PATH}/ \
+    OUT_DIR=temp_out_dir \
+    KERNEL_UAPI_HEADERS_DIR=${STAGING_KERNEL_BUILDDIR} \
+    ./build/build_module.sh
 }
 
 do_install() {
@@ -71,21 +54,33 @@ do_install() {
 	install -d ${D}/usr/lib/modules/
 
         # strip debug symbols and sign the module
-        ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/9.3.0/strip \
+	 ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/9.3.0/strip \
+              --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
+	 ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/9.3.0/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
+	 ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/9.3.0/strip \
+              --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
 
         LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
         ${KERNEL_PREBUILT_PATH}/../msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.pem \
-             ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
+        ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
+        LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
+        ${KERNEL_PREBUILT_PATH}/../msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.pem \
+	${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
+	LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
+        ${KERNEL_PREBUILT_PATH}/../msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.pem \
+        ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
 
+	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${libdir}/modules/qts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
+	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko -D ${D}${libdir}/modules/focaltech_fts.ko
 	install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 	install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
 	ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
 }
 
-FILES_${PN} += "${sysconfdir}/*"
-FILES_${PN} += "/etc/initscripts/start_touch_le"
-FILES_${PN} += "${systemd_unitdir}/system/touch.service"
-FILES_${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
-FILES_${PN} += "${libdir}/modules/*"
+FILES:${PN} += "${sysconfdir}/*"
+FILES:${PN} += "/etc/initscripts/start_touch_le"
+FILES:${PN} += "${systemd_unitdir}/system/touch.service"
+FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
+FILES:${PN} += "${libdir}/modules/*"
