@@ -69,6 +69,7 @@ case "$1" in
 
 	insmod $MODULE_BASE/qts.ko
 	insmod $MODULE_BASE/st_fts.ko
+	insmod $MODULE_BASE/goodix_ts.ko
 
 	echo "done loading touch_kernel module"
 
