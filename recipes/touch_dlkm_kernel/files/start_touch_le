@@ -67,14 +67,10 @@ case "$1" in
     start)
 	echo -n "Starting/Loading touch module: "
 
-<<<<<<< HEAD   (66f674 Merge "meta-qti-touch: change file location")
-	insmod $MODULE_BASE/goodix_ts.ko
-=======
 	insmod $MODULE_BASE/qts.ko
 	insmod $MODULE_BASE/focaltech_fts.ko
 	insmod $MODULE_BASE/synaptics_tcm_ts.ko
 	insmod $MODULE_BASE/nt36xxx-i2c.ko
->>>>>>> CHANGE (99558c touch dlkm: support nt36xxx-i2c.ko and synaptics.ko for meta)
 
 	echo "done loading touch_kernel module"
 
