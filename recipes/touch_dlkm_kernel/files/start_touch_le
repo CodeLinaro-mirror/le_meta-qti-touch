@@ -67,7 +67,9 @@ case "$1" in
     start)
 	echo -n "Starting/Loading touch module: "
 
+	insmod $MODULE_BASE/qts.ko
 	insmod $MODULE_BASE/goodix_ts.ko
+	insmod $MODULE_BASE/focaltech_fts.ko
 
 	echo "done loading touch_kernel module"
 
