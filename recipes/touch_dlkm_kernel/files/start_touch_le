@@ -68,9 +68,8 @@ case "$1" in
 	echo -n "Starting/Loading touch module: "
 
 	insmod $MODULE_BASE/qts.ko
+	insmod $MODULE_BASE/goodix_ts.ko
 	insmod $MODULE_BASE/focaltech_fts.ko
-	insmod $MODULE_BASE/synaptics_tcm_ts.ko
-	insmod $MODULE_BASE/nt36xxx-i2c.ko
 
 	echo "done loading touch_kernel module"
 
@@ -98,6 +97,3 @@ case "$1" in
 esac
 
 exit 0
-
-
-
