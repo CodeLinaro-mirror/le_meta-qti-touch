@@ -12,6 +12,11 @@ PACKAGES = ' \
     packagegroup-qti-touch \
     '
 
+
+
+RDEPENDS:packagegroup-qti-touch:append:qcm4325-mtp = ' \
+    ${@bb.utils.contains_any("BASEMACHINE", "qcm2290-mtp qcm4325-mtp", "touchdlkm", bb.utils.contains("DISTRO_CODENAME", "kirkstone", "touchdlkm", "touch-for-linuxdlkm", d), d)} \
+    '
 LE_VERSION_DIFF ="${@bb.utils.contains("DISTRO_CODENAME", "kirkstone", ":", "_", d)}"
 
 RDEPENDS${LE_VERSION_DIFF}packagegroup-qti-touch = ' \
