@@ -21,6 +21,9 @@ S = "${WORKDIR}/vendor/qcom/opensource/touch-drivers"
 EXTRA_OEMAKE += "TARGET_SUPPORT=${BASEMACHINE}"
 KP_STRIP_VERSION ?= "11.4.0"
 
+GCCVER_AVAILABLE := "${@''.join(filter(lambda x: x != '%', '${GCCVERSION}'))}.0"
+STRIP_VERSION = "${GCCVER_AVAILABLE}"
+
 # Disable parallel make
 PARALLEL_MAKE = ""
 
