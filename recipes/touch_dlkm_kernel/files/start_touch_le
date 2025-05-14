@@ -60,14 +60,24 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-export MODULE_BASE=/usr/lib/modules/
+export MODULE_BASE=/usr/lib/modules
 set -e
 
 case "$1" in
     start)
 	echo -n "Starting/Loading touch module: "
 
-	insmod $MODULE_BASE/goodix_ts.ko
+        file_list="$MODULE_BASE/qts.ko $MODULE_BASE/nt36xxx-i2c.ko $MODULE_BASE/synaptics_tcm_ts.ko $MODULE_BASE/goodix_ts.ko $MODULE_BASE/focaltech_fts.ko"
+
+        for file in $file_list
+        do
+         if [ -f "$file" ]; then
+            echo -e "found file \n"
+            insmod "$file"
+         else
+            echo "$file not found"
+         fi
+	done
 
 	echo "done loading touch_kernel module"
 
@@ -75,7 +85,7 @@ case "$1" in
 	until [ -d /sys/kernel/qts/primary ] || [ $timeperiod -gt 20 ]
 	do
 		sleep 0.1
-		((timeperiod++))
+                timeperiod=$(expr $timeperiod + 1)
 	done
 	chown -h system:system /sys/kernel/qts/primary/trusted_*
 	chown -h system:system /sys/kernel/qts/secondary/trusted_*
