@@ -73,6 +73,7 @@ case "$1" in
       if [ -f "$MODULE_BASE/focaltech_fts.ko" ]; then
           insmod $MODULE_BASE/focaltech_fts.ko
       fi
+
 	echo "done loading touch_kernel module"
 
 	timeperiod=0
