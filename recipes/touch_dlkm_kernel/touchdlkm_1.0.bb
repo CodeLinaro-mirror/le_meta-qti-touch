@@ -51,13 +51,13 @@ do_compile() {
 
 do_install() {
 	install -d ${D}${sysconfdir}/initscripts
-	if ${@bb.utils.contains('MACHINE', 'kera', 'true','false', d)}; then
+	if ${@bb.utils.contains_any('BASEMACHINE', 'kera sun', 'true','false', d)}; then
 		install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
 	fi
 	install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
 	install -d ${D}/usr/lib/modules/
 
-	if ${@bb.utils.contains('MACHINE', 'kera', 'false','true', d)}; then
+	if ${@bb.utils.contains_any('BASEMACHINE', 'kera sun', 'false','true', d)}; then
 	        # strip debug symbols and sign the module
 		 ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
 	              --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
@@ -89,7 +89,7 @@ do_install() {
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
 	install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 	install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
-	if ${@bb.utils.contains('MACHINE', 'kera', 'true','false', d)}; then
+	if ${@bb.utils.contains_any('BASEMACHINE', 'kera sun', 'true','false', d)}; then
 		ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
 	fi
 }
