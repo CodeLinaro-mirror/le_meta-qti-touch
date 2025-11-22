@@ -13,7 +13,6 @@ PACKAGES = ' \
     '
 
 
-
 RDEPENDS:packagegroup-qti-touch:append = ' \
     ${@bb.utils.contains_any("BASEMACHINE", "qcm2290-mtp qcm4325-mtp", "touchdlkm", bb.utils.contains("DISTRO_CODENAME", "kirkstone", "touchdlkm", "touch-for-linuxdlkm", d), d)} \
     '

@@ -70,7 +70,6 @@ do_install() {
 		install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
 		install -d ${D}/usr/lib/modules/
 
-
 	        # strip debug symbols and sign the module
 		${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
 			 --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
@@ -116,6 +115,7 @@ do_install() {
 
 	            install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
                 fi
+
 		install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 		install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
 		ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
