@@ -20,7 +20,7 @@ SRC_URI    +=  "file://touch_load.conf"
 S = "${WORKDIR}/vendor/qcom/opensource/touch-drivers"
 
 EXTRA_OEMAKE += "TARGET_SUPPORT=${BASEMACHINE}"
-KP_STRIP_VERSION ?= "11.4.0"
+KP_STRIP_VERSION ?= "${@bb.utils.contains('BASEMACHINE', 'alor', '13.3.0', '11.4.0', d)}"
 
 GCCVER_AVAILABLE := "${@''.join(filter(lambda x: x != '%', '${GCCVERSION}'))}.0"
 STRIP_VERSION = "${GCCVER_AVAILABLE}"
@@ -58,26 +58,28 @@ do_compile() {
 do_strip_and_sign_modules() {
 
          # strip debug symbols and sign the module
-         ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${KP_STRIP_VERSION}/strip \
+         ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
 
-         ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${KP_STRIP_VERSION}/strip \
+         ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
 
-         ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${KP_STRIP_VERSION}/strip \
+         ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
-        LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
-        ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
+        if ${@bb.utils.contains('BASEMACHINE', 'alor', 'false','true', d)}; then
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+            ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
-        LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
-        ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+            ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
 
-        LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
-        ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+            ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
+        fi
 
-        if ${@bb.utils.contains('MACHINE', 'trustedvm-v4', 'false','true', d)}; then
-            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${KP_STRIP_VERSION}/strip \
+        if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v4 alor', 'false','true', d)}; then
+            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
                   --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
             LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
             ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
@@ -86,6 +88,9 @@ do_strip_and_sign_modules() {
 
 do_install() {
       install -d ${D}${sysconfdir}/initscripts
+      if ${@bb.utils.contains('BASEMACHINE', 'alor', 'true','false', d)}; then
+          install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
+      fi
       install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
       install -d ${D}/usr/lib/modules/
 
@@ -96,13 +101,16 @@ do_install() {
       chown 0:0 ${D}${libdir}/modules/st_fts.ko
       chown 0:0 ${D}${libdir}/modules/goodix_ts.ko
 
-      if ${@bb.utils.contains('MACHINE', 'trustedvm-v4', 'false','true', d)}; then
+      if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v4 alor', 'false','true', d)}; then
           cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko ${D}${libdir}/modules/focaltech_fts.ko
           chown 0:0 ${D}${libdir}/modules/focaltech_fts.ko
       fi
 
       install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
       install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
+      if ${@bb.utils.contains_any('BASEMACHINE', 'alor', 'true','false', d)}; then
+          ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
+      fi
 }
 
 python () {
@@ -113,6 +121,7 @@ python () {
 FILES:${PN} += "${sysconfdir}/*"
 FILES:${PN} += "/etc/initscripts/start_touch_le"
 FILES:${PN} += "${systemd_unitdir}/system/touch.service"
+FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
 FILES:${PN} += "${libdir}/modules/*"
 
 RM_WORK_EXCLUDE += "${PN}"
