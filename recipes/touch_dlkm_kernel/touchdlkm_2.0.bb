@@ -20,7 +20,7 @@ SRC_URI    +=  "file://touch_load.conf"
 S = "${WORKDIR}/vendor/qcom/opensource/touch-drivers"
 
 EXTRA_OEMAKE += "TARGET_SUPPORT=${BASEMACHINE}"
-KP_STRIP_VERSION ?= "${@bb.utils.contains('BASEMACHINE', 'alor', '13.3.0', '11.4.0', d)}"
+KP_STRIP_VERSION ?= "${@bb.utils.contains_any('BASEMACHINE', 'alor', '13.3.0', '11.4.0', d)}"
 
 GCCVER_AVAILABLE := "${@''.join(filter(lambda x: x != '%', '${GCCVERSION}'))}.0"
 STRIP_VERSION = "${GCCVER_AVAILABLE}"
@@ -33,6 +33,7 @@ PARALLEL_MAKE = "-j1"
 LD_PATH = "${@oe.utils.conditional('KERNEL_TOOLS_USES_MUSLC', 'True', "${LD_PATH_MUSLC}", "${LD_PATH_GLIBC}", d)}"
 
 do_compile[lockfiles] = "${TMPDIR}/build_modules.lock"
+do_compile[network] = "1"
 
 do_configure() {
         cp -f ${WORKSPACE}/vendor/qcom/opensource/touch-drivers/Makefile.am ${WORKSPACE}/vendor/qcom/opensource/touch-drivers/Makefile
@@ -57,6 +58,7 @@ do_compile() {
 
 do_strip_and_sign_modules() {
 
+    if ${@bb.utils.contains_any('BASEMACHINE', 'alor', 'false','true', d)}; then
          # strip debug symbols and sign the module
          ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
@@ -67,7 +69,13 @@ do_strip_and_sign_modules() {
          ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
-        if ${@bb.utils.contains('BASEMACHINE', 'alor', 'false','true', d)}; then
+        if ${@bb.utils.contains_any('BASEMACHINE', 'art', 'true','false', d)}; then
+            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
+                --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+	    ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko
+	fi
+
             LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
             ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
@@ -76,7 +84,7 @@ do_strip_and_sign_modules() {
 
             LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
             ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
-        fi
+    fi
 
         if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v4 alor', 'false','true', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
@@ -88,7 +96,7 @@ do_strip_and_sign_modules() {
 
 do_install() {
       install -d ${D}${sysconfdir}/initscripts
-      if ${@bb.utils.contains('BASEMACHINE', 'alor', 'true','false', d)}; then
+      if ${@bb.utils.contains_any('BASEMACHINE', 'alor', 'true','false', d)}; then
           install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
       fi
       install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
@@ -104,6 +112,11 @@ do_install() {
       if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v4 alor', 'false','true', d)}; then
           cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko ${D}${libdir}/modules/focaltech_fts.ko
           chown 0:0 ${D}${libdir}/modules/focaltech_fts.ko
+      fi
+
+      if ${@bb.utils.contains_any('BASEMACHINE', 'art', 'true','false', d)}; then
+          cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko ${D}${libdir}/modules/synaptics_tcm2_ts.ko
+          chown 0:0 ${D}${libdir}/modules/synaptics_tcm2_ts.ko
       fi
 
       install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
