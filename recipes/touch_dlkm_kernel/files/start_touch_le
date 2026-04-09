@@ -68,11 +68,22 @@ case "$1" in
 	echo -n "Starting/Loading touch module: "
 
 	insmod $MODULE_BASE/qts.ko
-	insmod $MODULE_BASE/st_fts.ko
-	insmod $MODULE_BASE/goodix_ts.ko
-      if [ -f "$MODULE_BASE/focaltech_fts.ko" ]; then
-          insmod $MODULE_BASE/focaltech_fts.ko
-      fi
+
+	if [ -f "$MODULE_BASE/st_fts.ko" ]; then
+		insmod $MODULE_BASE/st_fts.ko
+	fi
+
+	if [ -f "$MODULE_BASE/goodix_ts.ko" ]; then
+		insmod $MODULE_BASE/goodix_ts.ko
+	fi
+
+	if [ -f "$MODULE_BASE/focaltech_fts.ko" ]; then
+		insmod $MODULE_BASE/focaltech_fts.ko
+	fi
+
+	if [ -f "$MODULE_BASE/synaptics_tcm2_ts.ko" ]; then
+		insmod $MODULE_BASE/synaptics_tcm2_ts.ko
+	fi
 
 	echo "done loading touch_kernel module"
 

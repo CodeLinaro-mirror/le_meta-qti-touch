@@ -7,7 +7,11 @@ inherit linux-kernel-base deploy
 PR = "r0"
 PV = "2.0+git"
 
-DEPENDS = "rsync-native displaydlkm"
+#DEPENDS = "rsync-native displaydlkm"
+
+#####Add for DDK
+DDK_BUILD ?= "false"
+DEPENDS += "${@bb.utils.contains('DDK_BUILD', 'false', 'rsync-native displaydlkm', '', d)}"
 
 do_configure[depends] += "virtual/kernel:do_shared_workdir"
 
@@ -58,26 +62,37 @@ do_compile() {
 
 do_strip_and_sign_modules() {
 
+    if ${@bb.utils.contains_any('BASEMACHINE', 'alor', 'false','true', d)}; then
          # strip debug symbols and sign the module
          ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
 
-         ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
-              --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
+        if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar', 'false','true', d)}; then
+            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
+               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
+        fi
 
          ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
-        if ${@bb.utils.contains_any('BASEMACHINE', 'alor', 'false','true', d)}; then
+        if ${@bb.utils.contains_any('BASEMACHINE', 'art', 'true','false', d)}; then
+            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
+                --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+	    ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko
+	fi
+
             LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
             ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
-            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
-            ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
+            if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar', 'false','true', d)}; then
+                LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+                ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
+            fi
 
             LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
             ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
-        fi
+    fi
 
         if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v4 alor', 'false','true', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
@@ -96,15 +111,24 @@ do_install() {
       install -d ${D}/usr/lib/modules/
 
       cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko ${D}${libdir}/modules/qts.ko
-      cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko ${D}${libdir}/modules/st_fts.ko
+
+      if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar', 'false','true', d)}; then
+           cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko ${D}${libdir}/modules/st_fts.ko
+           chown 0:0 ${D}${libdir}/modules/st_fts.ko
+      fi
+
       cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko ${D}${libdir}/modules/goodix_ts.ko
       chown 0:0 ${D}${libdir}/modules/qts.ko
-      chown 0:0 ${D}${libdir}/modules/st_fts.ko
       chown 0:0 ${D}${libdir}/modules/goodix_ts.ko
 
       if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v4 alor', 'false','true', d)}; then
           cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko ${D}${libdir}/modules/focaltech_fts.ko
           chown 0:0 ${D}${libdir}/modules/focaltech_fts.ko
+      fi
+
+      if ${@bb.utils.contains_any('BASEMACHINE', 'art', 'true','false', d)}; then
+          cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko ${D}${libdir}/modules/synaptics_tcm2_ts.ko
+          chown 0:0 ${D}${libdir}/modules/synaptics_tcm2_ts.ko
       fi
 
       install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
