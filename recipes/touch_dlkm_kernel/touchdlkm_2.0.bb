@@ -68,7 +68,7 @@ do_strip_and_sign_modules() {
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
 
         if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar', 'false','true', d)}; then
-            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
+            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${KP_STRIP_VERSION}/strip \
                --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
         fi
 
@@ -76,7 +76,7 @@ do_strip_and_sign_modules() {
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
         if ${@bb.utils.contains_any('BASEMACHINE', 'art', 'true','false', d)}; then
-            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
+            ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${KP_STRIP_VERSION}/strip \
                 --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko
             LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
 	    ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko
