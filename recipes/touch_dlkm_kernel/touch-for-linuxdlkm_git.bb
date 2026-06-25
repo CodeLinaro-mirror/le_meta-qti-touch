@@ -69,8 +69,9 @@ do_compile() {
 
 do_install() {
 	install -d ${D}${sysconfdir}/initscripts
+	install -d ${D}${sbindir}/initscripts
 	install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
-	install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
+	install -m 755 ${WORKDIR}/start_touch_le ${D}${sbindir}/initscripts
 	install -d ${D}/usr/lib/modules/
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/atmel_mxt_ts.ko -D ${D}${libdir}/modules/atmel_mxt_ts.ko
@@ -83,7 +84,7 @@ do_install() {
 }
 
 FILES:${PN} += "${sysconfdir}/*"
-FILES:${PN} += "/etc/initscripts/start_touch_le"
+FILES:${PN} += "${sbindir}/initscripts/start_touch_le"
 FILES:${PN} += "${systemd_unitdir}/system/touch.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
 FILES:${PN} += "${libdir}/modules/*"
