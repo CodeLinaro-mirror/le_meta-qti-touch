@@ -69,21 +69,23 @@ do_compile() {
 
 do_install() {
 	install -d ${D}${sysconfdir}/initscripts
+	install -d ${D}${sbindir}/initscripts
 	install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
-	install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
+	install -m 755 ${WORKDIR}/start_touch_le ${D}${sbindir}/initscripts
 	install -d ${D}/usr/lib/modules/
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/atmel_mxt_ts.ko -D ${D}${libdir}/modules/atmel_mxt_ts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${libdir}/modules/qts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko -D ${D}${libdir}/modules/st_fts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko -D ${D}${libdir}/modules/focaltech_fts.ko
+    install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/gt9xx-ts.ko -D ${D}${libdir}/modules/gt9xx-ts.ko
 	install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 	install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
 	ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
 }
 
 FILES:${PN} += "${sysconfdir}/*"
-FILES:${PN} += "/etc/initscripts/start_touch_le"
+FILES:${PN} += "${sbindir}/initscripts/start_touch_le"
 FILES:${PN} += "${systemd_unitdir}/system/touch.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
 FILES:${PN} += "${libdir}/modules/*"
