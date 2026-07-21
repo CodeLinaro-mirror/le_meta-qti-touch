@@ -78,6 +78,7 @@ do_install() {
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${libdir}/modules/qts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko -D ${D}${libdir}/modules/st_fts.ko
 	install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko -D ${D}${libdir}/modules/focaltech_fts.ko
+    install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/gt9xx-ts.ko -D ${D}${libdir}/modules/gt9xx-ts.ko
 	install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 	install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
 	ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
