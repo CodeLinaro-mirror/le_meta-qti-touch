@@ -141,7 +141,7 @@ do_install() {
           chown 0:0 ${D}${libdir}/modules/gt9xx-ts.ko
       fi
 
-      if ${@bb.utils.contains_any('BASEMACHINE', 'trustedvm-v5', 'true','false', d)}; then
+      if ${@bb.utils.contains_any('BASEMACHINE', 'trustedvm-v5 pebble', 'true','false', d)}; then
           cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko ${D}${libdir}/modules/synaptics_tcm2_ts.ko
           chown 0:0 ${D}${libdir}/modules/synaptics_tcm2_ts.ko
       fi
