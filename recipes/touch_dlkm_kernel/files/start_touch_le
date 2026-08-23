@@ -87,6 +87,10 @@ case "$1" in
 		insmod $MODULE_BASE/focaltech_fts.ko
 	fi
 
+	if [ -f "$MODULE_BASE/gt9xx-ts.ko" ]; then
+		insmod $MODULE_BASE/gt9xx-ts.ko
+	fi
+
 	echo "done loading touch_kernel module"
 
 	timeperiod=0

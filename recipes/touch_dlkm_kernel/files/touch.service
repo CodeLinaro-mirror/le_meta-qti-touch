@@ -61,15 +61,15 @@
 
 [Unit]
 Description= Load touch dlkm service
-SourcePath=/etc/initscripts/start_touch_le
+SourcePath=/usr/sbin/initscripts/start_touch_le
 
 [Service]
 Restart=on-failure
 RemainAfterExit=yes
 # This service file has no binary and it is to execute the list of commands in <script>.
 # Use Script file only when there is NO binary or commands to be executed/ modules to be installed cases.
-ExecStart=/etc/initscripts/start_touch_le start
-ExecStop=/etc/initscripts/start_touch_le stop
+ExecStart=/usr/sbin/initscripts/start_touch_le start
+ExecStop=/usr/sbin/initscripts/start_touch_le stop
 
 [Install]
 WantedBy=multi-user.target
