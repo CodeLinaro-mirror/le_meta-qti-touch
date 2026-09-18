@@ -51,10 +51,11 @@ do_compile() {
 
 do_install() {
 	install -d ${D}${sysconfdir}/initscripts
+	install -d ${D}${sbindir}/initscripts
 	if ${@bb.utils.contains_any('BASEMACHINE', 'kera sun', 'true','false', d)}; then
 		install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
 	fi
-	install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
+	install -m 755 ${WORKDIR}/start_touch_le ${D}${sbindir}/initscripts
 	install -d ${D}/usr/lib/modules/
 
 	if ${@bb.utils.contains_any('BASEMACHINE', 'kera sun', 'false','true', d)}; then
@@ -95,7 +96,7 @@ do_install() {
 }
 
 FILES:${PN} += "${sysconfdir}/*"
-FILES:${PN} += "/etc/initscripts/start_touch_le"
+FILES:${PN} += "${sbindir}/initscripts/start_touch_le"
 FILES:${PN} += "${systemd_unitdir}/system/touch.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
 FILES:${PN} += "${libdir}/modules/*"
