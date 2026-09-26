@@ -18,6 +18,7 @@ SRC_URI     =  "file://vendor/qcom/opensource/touch-drivers/"
 SRC_URI    +=  "file://start_touch_le"
 SRC_URI    +=  "file://touch.service"
 SRC_URI    +=  "file://touch_load.conf"
+KERNEL_VERSION = "${@get_kernelversion_file("${STAGING_KERNEL_BUILDDIR}")}"
 
 S = "${WORKDIR}/vendor/qcom/opensource/touch-drivers"
 
@@ -54,10 +55,10 @@ do_install() {
 		install -d ${D}${sysconfdir}/initscripts
 		install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
 		install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
-		install -d ${D}/usr/lib/modules/
-		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${libdir}/modules/${KERNEL_VERSION}
-		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/${KERNEL_VERSION}
-		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/atmel_mxt_ts.ko -D ${D}${libdir}/modules/${KERNEL_VERSION}
+		install -d ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
+		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
+		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
+		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/atmel_mxt_ts.ko -D ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
 		install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 		install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
 		ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
@@ -69,58 +70,59 @@ do_install() {
 		install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
 		install -d ${D}/usr/lib/modules/
 
+		# strip debug symbols and sign the module
+		${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
+			--strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
+		${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
+			--strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
+
+		LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
+		${KERNEL_PREBUILT_PATH}/msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.pem \
+		${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
+		LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
+		${KERNEL_PREBUILT_PATH}/msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.pem \
+		${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
+
+		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${libdir_native}/modules/qts.ko
+		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko -D ${D}${libdir_native}/modules/focaltech_fts.ko
+
+		if ${@bb.utils.contains_any('BASEMACHINE', 'qcm2290-mtp qcm4325-mtp', 'true', 'false', d)}; then
+			${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
+				--strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm_ts.ko
+			${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
+				--strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/nt36xxx-i2c.ko
+
+			LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
+			${KERNEL_PREBUILT_PATH}/msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.pem \
+			${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm_ts.ko
+			LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
+			${KERNEL_PREBUILT_PATH}/msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.pem \
+			${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/nt36xxx-i2c.ko
+
+			install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm_ts.ko -D ${D}${libdir_native}/modules/synaptics_tcm_ts.ko
+			install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/nt36xxx-i2c.ko -D ${D}${libdir_native}/modules/nt36xxx-i2c.ko
+		else
 			# strip debug symbols and sign the module
-		${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
-				  --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
-		${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
-				  --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
+			${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
+				--strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
 			LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
-			${KERNEL_PREBUILT_PATH}/msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.pem \
-			${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
-			LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
-			${KERNEL_PREBUILT_PATH}/msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.pem \
-			${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
-
-		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${libdir}/modules/qts.ko
-		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko -D ${D}${libdir}/modules/focaltech_fts.ko
-
-			if ${@bb.utils.contains('BASEMACHINE', 'qcm2290-mtp', 'true', 'false', d)}; then
-				${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
-					  --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm_ts.ko
-				${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
-					  --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/nt36xxx-i2c.ko
-
-				LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
-				${KERNEL_PREBUILT_PATH}/msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.pem \
-				${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm_ts.ko
-				LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
-				${KERNEL_PREBUILT_PATH}/msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.pem \
-				${KERNEL_PREBUILT_PATH}/msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/nt36xxx-i2c.ko
-				LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
-
-				install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm_ts.ko -D ${D}${libdir}/modules/synaptics_tcm_ts.ko
-				install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/nt36xxx-i2c.ko -D ${D}${libdir}/modules/nt36xxx-i2c.ko
-			else
-				# strip debug symbols and sign the module
-				${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${GCC_VERSION_TOUCH}/strip \
-					  --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
-
-				LD_LIBRARY_PATH=${WORKSPACE}/kernel-${PREFERRED_VERSION_linux-msm}/kernel_platform/prebuilts/kernel-build-tools/linux-x86/lib64/ \
-				${KERNEL_PREBUILT_PATH}/../msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.pem \
-				${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
+			${KERNEL_PREBUILT_PATH}/../msm-kernel/scripts/sign-file sha1 ${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.pem \
+			${KERNEL_PREBUILT_PATH}/../msm-kernel/certs/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
 
 			install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${libdir}/modules/goodix_ts.ko
-			fi
+		fi
 
 		install -m 0644 ${WORKDIR}/touch.service -D ${D}${systemd_unitdir}/system/touch.service
 		install -m 0755 ${WORKDIR}/touch_load.conf -D ${D}${sysconfdir}/modules-load.d/touch_load.conf
 		ln -sf ${systemd_unitdir}/system/touch.service ${D}${systemd_unitdir}/system/multi-user.target.wants/touch.service
 	fi
 }
+INSANE_SKIP:${PN} += "installed-vs-shipped"
 
 FILES:${PN} += "${sysconfdir}/*"
 FILES:${PN} += "/etc/initscripts/start_touch_le"
 FILES:${PN} += "${systemd_unitdir}/system/touch.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
-FILES:${PN} += "${libdir}/modules/*"
+FILES:${PN} += "${libdir_native}/modules/*"
+FILES:${PN} += "${nonarch_base_libdir}/modules/${KERNEL_VERSION}/*"
