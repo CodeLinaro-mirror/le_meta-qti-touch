@@ -35,6 +35,7 @@ PARALLEL_MAKE = ""
 # Disable parallel make
 PARALLEL_MAKE = "-j1"
 LD_PATH = "${@oe.utils.conditional('KERNEL_TOOLS_USES_MUSLC', 'True', "${LD_PATH_MUSLC}", "${LD_PATH_GLIBC}", d)}"
+MODULE_SIGN_HASH ?= "sha1"
 
 do_compile[lockfiles] = "${TMPDIR}/build_modules.lock"
 do_compile[network] = "1"
@@ -67,27 +68,27 @@ do_strip_and_sign_modules() {
          # strip debug symbols and sign the module
          ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
               --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
-        LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+        LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
           ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
 
         if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar trustedvm-v2-3', 'false','true', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
                --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
-            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
                 ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
         fi
 
         if ${@bb.utils.contains_any('BASEMACHINE', 'trustedvm-v2-3', 'false','true', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
                 --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
-            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
                 ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
         fi
 
         if ${@bb.utils.contains_any('BASEMACHINE', 'trustedvm-v5', 'true','false', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
                 --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko
-            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
                 ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko
         fi
 
@@ -96,14 +97,14 @@ do_strip_and_sign_modules() {
         if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v4 alor pebble trustedvm-v2-3', 'false','true', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
                   --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
-            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
             ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko
         fi
 
         if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v2-3', 'true','false', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
                   --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/gt9xx-ts.ko
-            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file sha1 ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
+            LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
             ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/gt9xx-ts.ko
         fi
 }
@@ -141,7 +142,7 @@ do_install() {
           chown 0:0 ${D}${libdir}/modules/gt9xx-ts.ko
       fi
 
-      if ${@bb.utils.contains_any('BASEMACHINE', 'trustedvm-v5 pebble', 'true','false', d)}; then
+      if ${@bb.utils.contains_any('BASEMACHINE', 'trustedvm-v5 trustedvm-v6 pebble', 'true','false', d)}; then
           cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/synaptics_tcm2_ts.ko ${D}${libdir}/modules/synaptics_tcm2_ts.ko
           chown 0:0 ${D}${libdir}/modules/synaptics_tcm2_ts.ko
       fi
