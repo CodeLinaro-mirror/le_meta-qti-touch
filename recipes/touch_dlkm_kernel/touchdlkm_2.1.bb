@@ -119,6 +119,11 @@ do_install() {
           chown 0:0 ${D}${libdir}/modules/synaptics_tcm2_ts.ko
       fi
 
+      if ${@bb.utils.contains_any('BASEMACHINE', 'pebble', 'true','false', d)}; then
+          cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/hynitron_touch.ko ${D}${libdir}/modules/hynitron_touch.ko
+          chown 0:0 ${D}${libdir}/modules/hynitron_touch.ko
+      fi
+
       if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v4 alor pebble', 'false','true', d)}; then
           cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/focaltech_fts.ko ${D}${libdir}/modules/focaltech_fts.ko
           chown 0:0 ${D}${libdir}/modules/focaltech_fts.ko
