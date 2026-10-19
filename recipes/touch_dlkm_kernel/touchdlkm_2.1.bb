@@ -19,6 +19,7 @@ SRC_URI     =  "file://vendor/qcom/opensource/touch-drivers/"
 SRC_URI    +=  "file://start_touch_le"
 SRC_URI    +=  "file://touch.service"
 SRC_URI    +=  "file://touch_load.conf"
+SRC_URI    +=  "file://vendor/qcom/proprietary/ts_firmware-noship/canoe/st_fts.ftb"
 
 S = "${WORKDIR}/vendor/qcom/opensource/touch-drivers"
 
@@ -103,6 +104,10 @@ do_install() {
       if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar', 'false','true', d)}; then
            cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko ${D}${libdir}/modules/st_fts.ko
            chown 0:0 ${D}${libdir}/modules/st_fts.ko
+
+           install -d ${D}${nonarch_base_libdir}/firmware/
+           install -m 0644 ${WORKDIR}/vendor/qcom/proprietary/ts_firmware-noship/canoe/st_fts.ftb \
+               ${D}${nonarch_base_libdir}/firmware/st_fts.ftb
       fi
 
       cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko ${D}${libdir}/modules/goodix_ts.ko
@@ -135,5 +140,6 @@ FILES:${PN} += "${sysconfdir}/*"
 FILES:${PN} += "${sbindir}/initscripts/start_touch_le"
 FILES:${PN} += "${systemd_unitdir}/system/touch.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
+FILES:${PN} += "${nonarch_base_libdir}/firmware/*"
 
 RM_WORK_EXCLUDE += "${PN}"
