@@ -71,14 +71,14 @@ do_strip_and_sign_modules() {
         LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
           ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko
 
-        if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar trustedvm-v2-3', 'false','true', d)}; then
+        if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar trustedvm-v4-1 trustedvm-v2-3', 'false','true', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
                --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
             LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
                 ${KERNEL_PREBUILT_PATH}/dist/signing_key.x509 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko
         fi
 
-        if ${@bb.utils.contains_any('BASEMACHINE', 'trustedvm-v2-3', 'false','true', d)}; then
+        if ${@bb.utils.contains_any('BASEMACHINE', 'trustedvm-v2-3 trustedvm-v4-1', 'false','true', d)}; then
             ${STAGING_DIR_NATIVE}/usr/libexec/aarch64-oe-linux/gcc/aarch64-oe-linux/${STRIP_VERSION}/strip \
                 --strip-debug ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko
             LD_LIBRARY_PATH=${LD_PATH} ${KERNEL_PREBUILT_PATH}/dist/sign-file ${MODULE_SIGN_HASH} ${KERNEL_PREBUILT_PATH}/dist/signing_key.pem \
@@ -121,12 +121,12 @@ do_install() {
       cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko ${D}${libdir}/modules/qts.ko
       chown 0:0 ${D}${libdir}/modules/qts.ko
 
-      if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar trustedvm-v2-3', 'false','true', d)}; then
+      if ${@bb.utils.contains_any('MACHINE', 'trustedvm-malabar trustedvm-v4-1 trustedvm-v2-3', 'false','true', d)}; then
            cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/st_fts.ko ${D}${libdir}/modules/st_fts.ko
            chown 0:0 ${D}${libdir}/modules/st_fts.ko
       fi
 
-      if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v2-3', 'false','true', d)}; then
+      if ${@bb.utils.contains_any('MACHINE', 'trustedvm-v2-3 trustedvm-v4-1', 'false','true', d)}; then
         cp -rp ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko ${D}${libdir}/modules/goodix_ts.ko
         chown 0:0 ${D}${libdir}/modules/goodix_ts.ko
       fi
