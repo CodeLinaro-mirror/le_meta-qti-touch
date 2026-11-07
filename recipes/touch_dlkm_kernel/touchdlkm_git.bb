@@ -53,8 +53,9 @@ do_compile() {
 do_install() {
 	if ${@bb.utils.contains('BASEMACHINE', 'kalama', 'true', 'false', d)}; then
 		install -d ${D}${sysconfdir}/initscripts
+		install -d ${D}${sbindir}/initscripts
 		install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
-		install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
+		install -m 755 ${WORKDIR}/start_touch_le ${D}${sbindir}/initscripts
 		install -d ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
 		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/qts.ko -D ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
 		install -m 0755 ${WORKDIR}/vendor/qcom/opensource/touch-drivers/goodix_ts.ko -D ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}
@@ -66,8 +67,9 @@ do_install() {
 		GCC_VERSION_TOUCH=$(aarch64-oe-linux-gcc --version | head -n 1 | awk '{print $3}')
 
 		install -d ${D}${sysconfdir}/initscripts
+		install -d ${D}${sbindir}/initscripts
 		install -d ${D}${systemd_unitdir}/system/multi-user.target.wants/
-		install -m 755 ${WORKDIR}/start_touch_le ${D}${sysconfdir}/initscripts
+		install -m 755 ${WORKDIR}/start_touch_le ${D}${sbindir}/initscripts
 		install -d ${D}/usr/lib/modules/
 
 		# strip debug symbols and sign the module
@@ -121,7 +123,7 @@ do_install() {
 INSANE_SKIP:${PN} += "installed-vs-shipped"
 
 FILES:${PN} += "${sysconfdir}/*"
-FILES:${PN} += "/etc/initscripts/start_touch_le"
+FILES:${PN} += "${sbindir}/initscripts/start_touch_le"
 FILES:${PN} += "${systemd_unitdir}/system/touch.service"
 FILES:${PN} += "${systemd_unitdir}/system/multi-user.target.wants/touch.service"
 FILES:${PN} += "${libdir_native}/modules/*"

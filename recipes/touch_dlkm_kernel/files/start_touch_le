@@ -85,10 +85,14 @@ case "$1" in
 	until [ -d /sys/kernel/qts/primary ] || [ $timeperiod -gt 20 ]
 	do
 		sleep 0.1
-                timeperiod=$(expr $timeperiod + 1)
+                timeperiod=$(( $timeperiod + 1 ))
 	done
-	chown -h system:system /sys/kernel/qts/primary/trusted_*
-	chown -h system:system /sys/kernel/qts/secondary/trusted_*
+	if [ -d /sys/kernel/qts/primary ]; then
+		chown -h system:system /sys/kernel/qts/primary/trusted_*
+	fi
+	if [ -d /sys/kernel/qts/secondary ]; then
+		chown -h system:system /sys/kernel/qts/secondary/trusted_*
+	fi
 
 	;;
     stop)
